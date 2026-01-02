@@ -33,10 +33,10 @@ export const Stats = () => {
       {/* Decorative Rangoli layer */}
       <div className="hidden pointer-events-none absolute inset-0 lg:flex items-center justify-between opacity-40">
         <div className="-translate-x-3/5">
-          <RotatingRangoli className="animate-[spin-slow_150s_linear_infinite]"/>
+          <RotatingRangoli className="animate-[spin-slow_150s_linear_infinite]" />
         </div>
         <div className="translate-x-3/5">
-          <RotatingRangoli className="animate-[spin-slow_150s_linear_infinite_reverse]"/>
+          <RotatingRangoli className="animate-[spin-slow_150s_linear_infinite_reverse]" />
         </div>
       </div>
 
@@ -51,8 +51,8 @@ export const Stats = () => {
         </div>
 
         <p className="text-center text-lg pt-2 opacity-70 max-w-2xl mx-auto">
-          From the very origins of yogic practices to modern practices our tutors
-          cover everything.
+          From the very origins of yogic practices to modern practices our
+          tutors cover everything.
         </p>
 
         <div className="w-[80%] lg:w-[50%] text-white min-h-60 flex-col md:flex-row flex mx-auto mt-12">

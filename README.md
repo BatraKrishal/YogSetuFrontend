@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+==============================
+PROJECT STATUS & TODO
+==============================
 
-## Getting Started
+------------------------------
+DONE
+------------------------------
+- Landing page (public entry)
+- Auth routes:
+  - Login
+  - Signup
+  - Forgot password
+  - Reset password
+- Zod validation for all auth forms
+- Cookie-based authentication
+- Global auth state using Zustand
+- Auth bootstrap using GET /me
+- Protected dashboard (client-side)
+- Logout functionality
 
-First, run the development server:
+------------------------------
+TODO (DO NEXT)
+------------------------------
+1. Profile / Me Page
+   - Create /dashboard/profile
+   - Call GET /me
+   - Show:
+     - email
+     - role (USER / INSTRUCTOR / ADMIN)
+     - email verification status
+   - Handle loading state
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. Sessions Listing (Read-only)
+   - Create /dashboard/sessions
+   - Call GET /sessions
+   - Render session cards:
+     - instructor
+     - start time
+     - end time
+     - price
+     - capacity / current bookings
+   - No booking yet
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Book Session (First Mutation Feature)
+   - Add "Book Session" button
+   - Call POST /sessions/:sessionId/book
+   - Handle errors:
+     - already booked
+     - session full
+   - Refresh session list after booking
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. My Bookings Page
+   - Create /dashboard/bookings
+   - Call GET /me/bookings
+   - Display booking status:
+     - BOOKED
+     - CANCELLED
+     - COMPLETED
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+------------------------------
+TODO (POLISH LATER)
+------------------------------
+- Redirect logged-in users away from /login and /signup
+- Unify loading indicators
+- Improve auth error messages
+- Minor UI cleanup for auth pages
+- Add success redirects for reset password
 
-## Learn More
+------------------------------
+TODO (LATER / PHASE 2)
+------------------------------
+- Wallet feature
+  - GET /wallet
+  - GET /wallet/transactions
+- Payments
+  - POST /payments/topup
+  - GET /payments/history
+- Instructor flows
+  - Apply as instructor
+  - Instructor session creation
+- Admin flows
+- Role-based access control
+- Middleware-based route protection
+- SSR / hybrid optimization
+- Testing (unit + integration)
+- Performance optimizations
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+------------------------------
+NOT DOING NOW (INTENTIONALLY)
+------------------------------
+- Token decoding on frontend
+- LocalStorage auth persistence
+- Middleware auth enforcement
+- Over-optimizing SSR
+- Advanced caching
