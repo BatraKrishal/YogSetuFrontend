@@ -1,9 +1,10 @@
 import { create } from "zustand";
+import { api, setAccessToken } from "@/lib/api";
 
 /**
  * AUTH STORE
  * ----------------------------------------------------
- * This store is a CLIENT-SIDE mirror of authentication state.
+ * Client-side mirror of authentication state.
  *
  * Source of truth:
  * - Backend (cookies + /me endpoint)
@@ -18,7 +19,7 @@ import { create } from "zustand";
    Types
 ---------------------------------------------------- */
 
-type User = {
+export type User = {
   id: string;
   email: string;
   role: "USER" | "INSTRUCTOR" | "ADMIN";
@@ -30,19 +31,19 @@ type AuthState = {
   isAuthenticated: boolean;
   loading: boolean;
 
-  // actions
-  setUser: (user: User) => void;
-  clearUser: () => void;
-  bootstrap: () => Promise<void>;
+  // core flows
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  bootstrap: () => Promise<void>;
+
+  // email verification
+  verifyEmail: (token: string) => Promise<void>;
+  resendVerification: () => Promise<void>;
+
+  // internal
+  clearUser: () => void;
 };
-
-/* ----------------------------------------------------
-   Config
----------------------------------------------------- */
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api";
 
 /* ----------------------------------------------------
    Store Implementation
@@ -53,45 +54,34 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   loading: true,
 
-  /**
-   * Sets authenticated user
-   */
-  setUser: (user) =>
-    set({
-      user,
-      isAuthenticated: true,
-      loading: false,
-    }),
+  /* ---------------------------
+     Login
+  --------------------------- */
+  login: async (email, password) => {
+    const { accessToken } = await api.login(email, password);
+    setAccessToken(accessToken);
+    await useAuthStore.getState().bootstrap();
+  },
 
-  /**
-   * Clears auth state (used on logout / 401)
-   */
-  clearUser: () =>
-    set({
-      user: null,
-      isAuthenticated: false,
-      loading: false,
-    }),
+  /* ---------------------------
+     Signup
+  --------------------------- */
+  signup: async (email, password) => {
+    const { accessToken } = await api.signup(email, password);
+    setAccessToken(accessToken);
+    await useAuthStore.getState().bootstrap();
+  },
 
-  /**
-   * Bootstrap auth state on app load
-   * --------------------------------------------------
-   * Calls GET /me using cookies
-   * - 200 → user authenticated
-   * - 401 → user not logged in
-   */
+  /* ---------------------------
+     Bootstrap
+     - Called on app load
+     - Uses cookies + /me
+  --------------------------- */
   bootstrap: async () => {
+    set({ loading: true });
+
     try {
-      const res = await fetch(`${API_BASE_URL}/me`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Not authenticated");
-      }
-
-      const user: User = await res.json();
+      const user = await api.getMe();
       set({
         user,
         isAuthenticated: true,
@@ -103,24 +93,42 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: false,
         loading: false,
       });
+      setAccessToken(null);
     }
   },
 
+  /* ---------------------------
+     Logout
+  --------------------------- */
   logout: async () => {
-  try {
-    await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
+    try {
+      await api.logout();
+    } finally {
+      useAuthStore.getState().clearUser();
+    }
+  },
+
+  /* ---------------------------
+     Email Verification
+  --------------------------- */
+  verifyEmail: async (token: string) => {
+    await api.verifyEmail(token);
+    await useAuthStore.getState().bootstrap();
+  },
+
+  resendVerification: async () => {
+    await api.resendVerification();
+  },
+
+  /* ---------------------------
+     Internal cleanup
+  --------------------------- */
+  clearUser: () => {
+    set({
+      user: null,
+      isAuthenticated: false,
+      loading: false,
     });
-  } catch {
-    // even if this fails, we still clear local state
-  }
-
-  set({
-    user: null,
-    isAuthenticated: false,
-    loading: false,
-  });
-},
-
+    setAccessToken(null);
+  },
 }));

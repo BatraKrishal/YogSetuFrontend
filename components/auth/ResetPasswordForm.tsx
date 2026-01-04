@@ -26,12 +26,11 @@ import { useSearchParams } from "next/navigation";
 import { resetPasswordSchema } from "@/types/auth";
 import TextInput from "../ui/TextInput";
 import PrimaryButton from "../ui/PrimaryButton";
+import { api } from "@/lib/api";
 
 /* ----------------------------------------------------
    Configuration
 ---------------------------------------------------- */
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api";
 
 /* ----------------------------------------------------
    Main Reset Password Component
@@ -77,22 +76,10 @@ export default function ResetPasswordForm() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(result.data), // ✅ validated token + password
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message ?? "Password reset failed");
-      }
-
+      await api.resetPassword(result.data.token, result.data.newPassword);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Password reset failed");
     } finally {
       setLoading(false);
     }

@@ -25,12 +25,11 @@ import { forgotPasswordSchema } from "@/types/auth";
 import { useState } from "react";
 import TextInput from "../ui/TextInput";
 import PrimaryButton from "../ui/PrimaryButton";
+import { api } from "@/lib/api";
 
 /* ----------------------------------------------------
    Configuration
 ---------------------------------------------------- */
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api";
 
 /* ----------------------------------------------------
    Main Forgot Password Component
@@ -68,18 +67,7 @@ export default function ForgotPasswordForm() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(result.data), // ✅ validated email
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message ?? "Request failed");
-      }
+      await api.forgotPassword(result.data.email);
 
       /**
        * Always show neutral success message
@@ -87,7 +75,7 @@ export default function ForgotPasswordForm() {
        */
       setSubmitted(true);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Request failed");
     } finally {
       setLoading(false);
     }

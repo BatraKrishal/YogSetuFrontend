@@ -24,14 +24,14 @@ import { useRouter } from "next/navigation";
  */
 
 import { useState } from "react";
+import Link from "next/link";
 import TextInput from "../ui/TextInput";
 import PrimaryButton from "../ui/PrimaryButton";
+import { useAuthStore } from "@/store/auth.store";
 
 /* ----------------------------------------------------
    Configuration
 ---------------------------------------------------- */
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api";
 
 /* ----------------------------------------------------
    Main Signup Form Component
@@ -73,24 +73,13 @@ export default function SignupForm() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(result.data), // ✅ validated data
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message ?? "Registration failed");
-      }
-
+      await useAuthStore
+        .getState()
+        .signup(result.data.email, result.data.password);
       setSuccess(true);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }

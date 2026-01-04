@@ -16,19 +16,19 @@ import { loginSchema } from "@/types/auth";
  *
  * API Base URL:
  * - Uses NEXT_PUBLIC_API_BASE_URL
- * - Falls back to http://localhost:4000/api
+ * - Falls back to http://localhost:4000/auth
  */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import TextInput from "../ui/TextInput";
 import PrimaryButton from "../ui/PrimaryButton";
+import { useAuthStore } from "@/store/auth.store";
 
 /* ----------------------------------------------------
    Configuration
 ---------------------------------------------------- */
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api";
 
 /* ----------------------------------------------------
    Main Login Form Component
@@ -70,24 +70,17 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(result.data), // ✅ safe data
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message ?? "Login failed");
-      }
-
+      await useAuthStore
+        .getState()
+        .login(result.data.email, result.data.password);
       setSuccess(true);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      // The store/api throws an object or error, we need to handle it.
+      // Looking at api.ts: `throw error` where error is `res.json()`.
+      // Ideally we should type this better, but for now matching existing behavior.
+      // The error object might have a message property.
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
