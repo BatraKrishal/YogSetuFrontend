@@ -79,7 +79,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   --------------------------- */
   bootstrap: async () => {
     set({ loading: true });
-
     try {
       const user = await api.getMe();
       set({

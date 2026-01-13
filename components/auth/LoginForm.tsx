@@ -76,11 +76,10 @@ export default function LoginForm() {
       setSuccess(true);
       router.push("/dashboard");
     } catch (err: any) {
-      // The store/api throws an object or error, we need to handle it.
-      // Looking at api.ts: `throw error` where error is `res.json()`.
-      // Ideally we should type this better, but for now matching existing behavior.
-      // The error object might have a message property.
-      setError(err.message || "Login failed");
+      console.error("Login Error:", err);
+      // Handle various error structures from backend
+      const errorMessage = err.message || err.error || "Login failed";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -131,12 +130,12 @@ export default function LoginForm() {
 
       {/* Secondary actions */}
       <div className="mt-4 flex justify-between text-sm text-gray-600">
-        <a href="/forgot-password" className="hover:underline">
+        <Link href="/forgot-password" className="hover:underline">
           Forgot password?
-        </a>
-        <a href="/signup" className="hover:underline">
+        </Link>
+        <Link href="/signup" className="hover:underline">
           Create account
-        </a>
+        </Link>
       </div>
     </div>
   );

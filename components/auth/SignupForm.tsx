@@ -79,7 +79,10 @@ export default function SignupForm() {
       setSuccess(true);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Registration failed");
+      console.error("Signup Error:", err);
+      // Handle various error structures from backend
+      const errorMessage = err.message || err.error || "Registration failed";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -137,9 +140,9 @@ export default function SignupForm() {
       {/* Secondary navigation */}
       <div className="mt-4 text-center text-sm text-gray-600">
         Already have an account?{" "}
-        <a href="/login" className="font-medium hover:underline">
+        <Link href="/login" className="font-medium hover:underline">
           Login
-        </a>
+        </Link>
       </div>
     </div>
   );
