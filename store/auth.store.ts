@@ -81,6 +81,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true });
     try {
       const user = await api.getMe();
+
+      // Normalized user logging for debug
+      console.log("Auth Bootstrap - User:", user);
+
       set({
         user,
         isAuthenticated: true,

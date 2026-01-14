@@ -1,25 +1,14 @@
+import { Booking, Session, User } from "@/types";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
 
-/**
- * In-memory access token (NOT persisted)
- * Cleared on refresh / logout
- */
 let accessToken: string | null = null;
 
-/**
- * Called by auth store after login / refresh
- */
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
-/**
- * Core request wrapper
- * - Sends cookies (refreshToken)
- * - Attaches Authorization header
- * - Auto-refreshes access token on 401
- */
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -37,7 +26,6 @@ async function request<T>(
     credentials: "include",
   });
 
-  // Access token expired → try refresh once
   if (res.status === 401 && retry) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
@@ -46,16 +34,14 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw error;
+    const errorBody = await res.json().catch(() => ({}));
+    console.error(`API Error: ${options.method || 'GET'} ${path} - ${res.status}`, errorBody);
+    throw errorBody;
   }
 
   return res.json();
 }
 
-/**
- * Refresh access token using refreshToken cookie
- */
 async function refreshAccessToken(): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -72,10 +58,6 @@ async function refreshAccessToken(): Promise<boolean> {
     return false;
   }
 }
-
-/* ======================================================
-   API FUNCTIONS (NO LOGIC, JUST HTTP)
-   ====================================================== */
 
 export const api = {
   /* ---------- AUTH ---------- */
@@ -106,6 +88,7 @@ export const api = {
       email: string;
       role: "USER" | "INSTRUCTOR" | "ADMIN";
       isEmailVerified: boolean;
+      name?: string;
     }>("/me");
   },
 
@@ -138,5 +121,76 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ token, newPassword }),
     });
+  },
+
+  /* ---------- DASHBOARD ---------- */
+
+  getWalletBalance() {
+    return request<{ balance: number }>("/wallet");
+  },
+
+  getWalletTransactions() {
+    return request<import("@/types").Transaction[]>("/wallet/transactions");
+  },
+
+  topUpWallet(amount: number) {
+    return request<{ clientSecret: string }>("/payments/topup", {
+      method: "POST",
+      body: JSON.stringify({ amount })
+    });
+  },
+
+  getBookings() {
+    return request<{ bookings: Booking[]; total: number }>("/me/bookings");
+  },
+
+  getSessions() {
+    return request<Session[]>("/sessions");
+  },
+
+  bookSession(sessionId: string) {
+    return request<{ bookingId: string; clientSecret: string; bookingStatus: string }>(
+      `/sessions/${sessionId}/book/stripe`,
+      { method: "POST" }
+    );
+  },
+
+  cancelBooking(bookingId: string) {
+    return request<{ message: string }>(
+      `/sessions/bookings/${bookingId}/cancel`,
+      { method: "POST" }
+    );
+  },
+
+  /* ---------- STUDENT FEATURES ---------- */
+
+  getMyPayments() {
+    return request<import("@/types").Payment[]>("/me/payments");
+  },
+
+  /* ---------- INSTRUCTOR FEATURES ---------- */
+
+  createSession(data: {
+    startTime: string;
+    endTime: string;
+    price: number;
+    capacity?: number;
+  }) {
+    return request<Session>("/instructor/sessions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  completeSession(sessionId: string) {
+    return request<{ message: string }>(
+      `/instructor/sessions/${sessionId}/complete`,
+      { method: "POST" }
+    );
+  },
+
+  getInstructorSessions(instructorId?: string) {
+    const query = instructorId ? `?instructorId=${instructorId}` : "";
+    return request<Session[]>(`/sessions${query}`);
   },
 };

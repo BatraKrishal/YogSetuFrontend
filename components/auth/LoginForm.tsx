@@ -89,10 +89,13 @@ export default function LoginForm() {
      UI
   ------------------------------ */
   return (
-    <div className="w-full max-w-md rounded-lg bg-zinc-50 p-6 shadow">
-      <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-        Login
-      </h1>
+    <div className="w-full rounded-2xl bg-white/80 backdrop-blur-xl p-8 shadow-xl border border-white/20">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">
+          Welcome back
+        </h1>
+        <p className="text-zinc-500 mt-2">Sign in to continue your journey</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextInput
