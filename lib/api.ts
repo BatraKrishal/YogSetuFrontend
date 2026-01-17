@@ -193,4 +193,94 @@ export const api = {
     const query = instructorId ? `?instructorId=${instructorId}` : "";
     return request<Session[]>(`/sessions${query}`);
   },
+
+  /* ---------- PROFILE MANAGEMENT ---------- */
+
+  updateProfile(data: {
+    fullName?: string;
+    avatarUrl?: string;
+    phone?: string;
+    bio?: string;
+  }) {
+    return request<User>("/profile", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
+
+  /* ---------- INSTRUCTOR APPLICATION ---------- */
+
+  applyToBecomeInstructor(data: {
+    bio: string;
+    certificates: string[];
+    demoVideos: string[];
+  }) {
+    return request<{ id: string; status: string }>("/instructor/apply", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  /* ---------- ADMIN FUNCTIONS ---------- */
+
+  getInstructorApplications() {
+    return request<
+      {
+        id: string;
+        user: { id: string; email: string };
+        bio: string;
+        certificates: string[];
+        demoVideos: string[];
+        status: "PENDING" | "APPROVED" | "REJECTED";
+        reviewNotes?: string;
+        createdAt: string;
+      }[]
+    >("/admin/instructor-applications");
+  },
+
+  approveInstructorApplication(id: string) {
+    return request<{ message: string; userId: string }>(
+      `/admin/instructor-applications/${id}/approve`,
+      { method: "POST" }
+    );
+  },
+
+  rejectInstructorApplication(id: string, reviewNotes?: string) {
+    return request<{ message: string; userId: string }>(
+      `/admin/instructor-applications/${id}/reject`,
+      {
+        method: "POST",
+        body: JSON.stringify({ reviewNotes }),
+      }
+    );
+  },
+
+  getPaymentReconciliation(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.append("from", from);
+    if (to) params.append("to", to);
+    return request<{
+      stripeSucceededCount: number;
+      stripeSucceededAmount: string;
+      walletCreditedAmount: string;
+      difference: string;
+      healthy: boolean;
+    }>(`/admin/payments/reconciliation?${params.toString()}`);
+  },
+
+  getPaymentIntents(
+    from?: string,
+    to?: string,
+    page = 1,
+    limit = 50
+  ) {
+    const params = new URLSearchParams();
+    if (from) params.append("from", from);
+    if (to) params.append("to", to);
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+    return request<import("@/types").Payment[]>(
+      `/admin/payments/payment-intents?${params.toString()}`
+    );
+  },
 };

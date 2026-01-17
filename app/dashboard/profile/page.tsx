@@ -97,7 +97,18 @@ export default function ProfilePage() {
           </div>
         </div>
         <div className="flex flex-col gap-3 w-full md:w-auto">
-          <Button variant="outline">Edit Profile</Button>
+          <Button variant="outline" onClick={() => setIsEditProfileOpen(true)}>
+            Edit Profile
+          </Button>
+          {user.role === "USER" && (
+            <Button
+              variant="secondary"
+              className="bg-zinc-900 text-white hover:bg-zinc-800"
+              onClick={() => router.push("/dashboard/become-instructor")}
+            >
+              Become Instructor
+            </Button>
+          )}
           <Button
             variant="ghost"
             className="text-red-500 hover:text-red-600 hover:bg-red-50"
@@ -107,6 +118,16 @@ export default function ProfilePage() {
           </Button>
         </div>
       </div>
+
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        user={user}
+        onSuccess={(updatedUser) => {
+          // We might need to update auth store here, but for now a window reload is safest to resync
+          window.location.reload();
+        }}
+      />
 
       {/* Navigation Tabs */}
       <div className="flex items-center gap-2 border-b border-zinc-200 overflow-x-auto">
